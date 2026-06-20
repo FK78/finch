@@ -2,60 +2,74 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"log"
 	"os"
+	"path/filepath"
 )
 
-func check(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-type FinnHubToken struct {
+type Config struct {
 	Token string `json:"finnhubToken"`
 }
+type Holding struct {
+	ticker       string
+	buyPrice     float64
+	amountBought float64
+}
 
-func config() FinnHubToken {
-	var tokenConfig FinnHubToken
-	userHomeDir, _ := os.UserHomeDir()
-	finchConfigDir := userHomeDir + "/.finch/"
-	if _, err := os.Stat(finchConfigDir); err == nil {
-		file, err := os.ReadFile(finchConfigDir + "/.config")
-		check(err)
-
-		if err := json.Unmarshal(file, &tokenConfig); err != nil {
-			log.Fatalf("Error unmarshalling JSON: %v", err)
-		}
-
-		return tokenConfig
-	} else if errors.Is(err, os.ErrNotExist) {
-		err := os.Mkdir(finchConfigDir, 0755)
-		check(err)
-		file, err := os.Create(finchConfigDir + "/.config")
-		if err != nil {
-			fmt.Println("Error creating file:", err)
-			return FinnHubToken{}
-		}
-		defer file.Close()
-
-		fmt.Println("Enter your Finnhub Token: ")
-		_, err = fmt.Scan(&tokenConfig.Token)
-		check(err)
-
-		jsonData, err := json.Marshal(tokenConfig)
-		check(err)
-
-		_, err = file.Write(jsonData)
-		if err != nil {
-			fmt.Println("Error writing to file:", err)
-			return tokenConfig
-		}
-		fmt.Println("Finnhub Token Saved")
-		return tokenConfig
-	} else {
-		return FinnHubToken{}
+func ensureFinchDirExists() error {
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
 	}
+	finchDir := filepath.Join(userHomeDir, ".finch")
+
+	return os.MkdirAll(finchDir, 0755)
+}
+
+func loadConfig() (Config, error) {
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		return Config{}, err
+	}
+	finchConfigFile, err := os.ReadFile(filepath.Join(userHomeDir, ".finch", "config.json"))
+	if err != nil {
+		return Config{}, err
+	}
+	var finchConfig Config
+	if err := json.Unmarshal(finchConfigFile, &finchConfig); err != nil {
+		return Config{}, err
+	}
+
+	return finchConfig, nil
+}
+
+func saveConfig(config Config) error {
+	jsonData, err := json.MarshalIndent(config, "", " ")
+	if err != nil {
+		return err
+	}
+
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	configFilePath := filepath.Join(userHomeDir, ".finch", "config.json")
+
+	err = os.WriteFile(configFilePath, jsonData, 0600)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func promptForAPIKey() (Config, error) {
+	config := Config{}
+	fmt.Print("Enter your Finnhub API Key: ")
+	_, err := fmt.Scan(&config.Token)
+	if err != nil {
+		return Config{}, err
+	}
+	return config, nil
 }
