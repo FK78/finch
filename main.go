@@ -24,11 +24,11 @@ func main() {
 	}
 	switch os.Args[1] {
 	case "add":
-		userHolding, err := addHolding()
+		userHolding, err := getUserHolding()
 		if err != nil {
 			log.Fatal("Error:", err)
 		}
-		addedSymbol, err := fetchSymbolData(userHolding, config)
+		_, err = fetchSymbolDataAndCalculateProfitAndLossSinceBuy(userHolding, config)
 		if err != nil {
 			log.Fatal("Error:", err)
 		}
@@ -36,7 +36,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error:", err)
 		}
-		_, err = saveToHoldingsJSON(holdingsJson, addedSymbol)
+		err = saveToHoldingsJSON(holdingsJson, userHolding)
 		if err != nil {
 			log.Fatal("Error:", err)
 		}

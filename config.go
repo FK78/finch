@@ -10,11 +10,6 @@ import (
 type Config struct {
 	Token string `json:"finnhubToken"`
 }
-type Holding struct {
-	ticker       string
-	buyPrice     float64
-	amountBought float64
-}
 
 func ensureFinchDirExists() error {
 	userHomeDir, err := os.UserHomeDir()
