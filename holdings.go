@@ -105,17 +105,22 @@ func loadHoldingsJSON() ([]Holding, error) {
 	if err := json.Unmarshal(holdingsFile, &holdingsConfig); err != nil {
 		return []Holding{}, err
 	}
-	fmt.Printf("%+v\n", holdingsConfig)
 	return holdingsConfig, nil
 }
 
 func saveToHoldingsJSON(holdings []Holding, userHolding Holding) error {
-	dataToAppend := Holding{
-		Ticker:       userHolding.Ticker,
-		BuyPrice:     userHolding.BuyPrice,
-		AmountBought: userHolding.AmountBought,
+	holdingExists := false
+	for i, holding := range holdings {
+		if holding.Ticker == userHolding.Ticker {
+			holdings[i].BuyPrice = (holding.AmountBought*holding.BuyPrice + userHolding.AmountBought*userHolding.BuyPrice) / (holding.AmountBought + userHolding.AmountBought)
+			holdings[i].AmountBought += userHolding.AmountBought
+			holdingExists = true
+			break
+		}
 	}
-	holdings = append(holdings, dataToAppend)
+	if !holdingExists {
+		holdings = append(holdings, userHolding)
+	}
 	jsonData, err := json.Marshal(holdings)
 	if err != nil {
 		return err
