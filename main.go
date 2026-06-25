@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func main() {
@@ -28,14 +31,19 @@ func main() {
 		if err != nil {
 			log.Fatal("Error:", err)
 		}
-		_, err = fetchSymbolDataAndCalculateProfitAndLossSinceBuy(userHolding, config)
+
+		PnL, err := fetchSymbolDataAndCalculateProfitAndLossSinceBuy(userHolding, config)
 		if err != nil {
 			log.Fatal("Error:", err)
 		}
+		msg := message.NewPrinter(language.BritishEnglish)
+		msg.Printf("Profit/Loss: %.2f\n", (PnL))
+
 		holdingsJson, err := loadHoldingsJSON()
 		if err != nil {
 			log.Fatal("Error:", err)
 		}
+
 		err = saveToHoldingsJSON(holdingsJson, userHolding)
 		if err != nil {
 			log.Fatal("Error:", err)
@@ -45,7 +53,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error:", err)
 		}
-		displayHoldings(holdingsJson)
+		displayHoldings(holdingsJson, config)
 	default:
 		fmt.Println("unknown command")
 	}

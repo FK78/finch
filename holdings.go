@@ -8,9 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"text/tabwriter"
-
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
 type Holding struct {
@@ -40,9 +37,8 @@ func fetchSymbolDataAndCalculateProfitAndLossSinceBuy(userHolding Holding, finnh
 		return 0, err
 	}
 
-	msg := message.NewPrinter(language.BritishEnglish)
-	msg.Printf("Profit: %.2f\n", (data["c"]-userHolding.BuyPrice)*userHolding.AmountBought)
-	return data["c"], nil
+	PnL := (data["c"] - userHolding.BuyPrice) * userHolding.AmountBought
+	return PnL, nil
 }
 
 func getUserHolding() (Holding, error) {
@@ -140,12 +136,13 @@ func saveToHoldingsJSON(holdings []Holding, userHolding Holding) error {
 	return nil
 }
 
-func displayHoldings(holdings []Holding) {
+func displayHoldings(holdings []Holding, finnhubToken Config) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
-	fmt.Fprintln(w, "| Ticker\t| Price Per Share\t| Amount of Shares\t|")
-	fmt.Fprintln(w, "| ------\t| ---------------\t| ----------------\t|")
+	fmt.Fprintln(w, "| Ticker\t| Price Per Share\t| Amount of Shares\t| P&L")
+	fmt.Fprintln(w, "| ------\t| ---------------\t| ----------------\t| ---------\t|")
 	for _, holding := range holdings {
-		fmt.Fprintf(w, "| %s\t| %.2f\t| %.2f\t|\n", holding.Ticker, holding.BuyPrice, holding.AmountBought)
+		holdingPnL, _ := fetchSymbolDataAndCalculateProfitAndLossSinceBuy(holding, finnhubToken)
+		fmt.Fprintf(w, "| %s\t| %.2f\t| %.2f\t| %.2f\t|\n", holding.Ticker, holding.BuyPrice, holding.AmountBought, holdingPnL)
 	}
 	w.Flush()
 }
