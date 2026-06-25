@@ -41,7 +41,11 @@ func main() {
 			log.Fatal("Error:", err)
 		}
 	case "list":
-
+		holdingsJson, err := loadHoldingsJSON()
+		if err != nil {
+			log.Fatal("Error:", err)
+		}
+		displayHoldings(holdingsJson)
 	default:
 		fmt.Println("unknown command")
 	}

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"text/tabwriter"
 
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -137,4 +138,14 @@ func saveToHoldingsJSON(holdings []Holding, userHolding Holding) error {
 	}
 
 	return nil
+}
+
+func displayHoldings(holdings []Holding) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
+	fmt.Fprintln(w, "| Ticker\t| Price Per Share\t| Amount of Shares\t|")
+	fmt.Fprintln(w, "| ------\t| ---------------\t| ----------------\t|")
+	for _, holding := range holdings {
+		fmt.Fprintf(w, "| %s\t| %.2f\t| %.2f\t|\n", holding.Ticker, holding.BuyPrice, holding.AmountBought)
+	}
+	w.Flush()
 }
