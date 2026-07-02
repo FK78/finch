@@ -42,7 +42,7 @@ Built for people who live in the terminal and don't want to context-switch to a 
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/finch.git
+git clone https://github.com/FK78/finch.git
 cd finch
 go build -o finch
 ```
